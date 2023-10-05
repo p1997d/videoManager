@@ -2,9 +2,9 @@
     use Carbon\Carbon;
     Carbon::setLocale('ru');
 @endphp
-<div class="container pt-3">
+<div class="container pt-3" id="videos">
     @if (count($videos) != 0)
-        <div class="d-flex flex-wrap" id="videos">
+        <div class="d-flex flex-wrap">
             @foreach ($videos as $video)
                 <div class="card m-2" style="width: 18rem;">
                     <div class="card-body">
