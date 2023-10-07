@@ -1,7 +1,10 @@
+@php
+    use Illuminate\Support\Str;
+@endphp
 <div class="modal" tabindex="-1" id="addModal">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('main.file.upload') }}" method="POST" enctype="multipart/form-data" id="fileForm">
+            <form action="{{ route('main.file.upload') }}" method="POST" enctype="multipart/form-data" class="fileUploadForm">
                 <div class="modal-header">
                     @csrf
                     <h5 class="modal-title">Загрузка видео</h5>
@@ -14,7 +17,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="fileInput" class="form-label">Загрузите видеоролик (не более 15 сек.)</label>
-                        <input class="form-control" type="file" id="fileInput" name="upload" accept="video/*"
+                        <input class="form-control" type="file" id="fileInput" name="video" accept="video/*"
                             required>
                         <small>
                             <p style="color: red" id="validationMessage"></p>

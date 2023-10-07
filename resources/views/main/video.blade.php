@@ -2,7 +2,7 @@
     use Carbon\Carbon;
     Carbon::setLocale('ru');
 @endphp
-<div class="container pt-3" id="videos">
+<div class="container pt-3 videos">
     @if (count($videos) != 0)
         <div class="d-flex flex-wrap">
             @foreach ($videos as $video)
@@ -31,9 +31,12 @@
                                 class="btn btn-outline-light btn-sm changeColorButton changeOutlineColorButton">480p</a>
                             <a href="{{ asset("upload/1080p/$video->id.mp4") }}"
                                 class="btn btn-outline-light btn-sm changeColorButton changeOutlineColorButton">1080p</a>
-                            <a href="{{ route('main.file.remove', $video->id) }}" class="btn btn-outline-danger changeColorButton btn-outline-danger btn-sm">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <form action="{{ route('main.file.remove', $video->id) }}" method="POST" class="fileRemoveForm">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger changeColorButton btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

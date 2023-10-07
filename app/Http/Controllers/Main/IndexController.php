@@ -13,6 +13,7 @@ use FFMpeg\Coordinate\TimeCode;
 use App\Models\Video;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
+use App\Jobs\VideoUploadJob;
 
 
 class IndexController extends Controller
@@ -24,7 +25,7 @@ class IndexController extends Controller
      */
     public function index()
     {
-        $videos = Video::orderBy('created_at', 'ASC')->paginate(12)->onEachSide(1);
+        $videos = Video::orderBy('created_at', 'ASC')->paginate(8)->onEachSide(1);
 
         return view('main.index', compact('videos'));
     }
@@ -37,62 +38,38 @@ class IndexController extends Controller
      */
     public function fileUpload(Request $request)
     {
-        if ($request->hasFile('upload')) {
+        if ($request->hasFile('video')) {
 
             $validator = Validator::make($request->all(), [
-                'upload' => 'required|file|mimetypes:video/*|max:10240',
+                'video' => 'required|file|mimetypes:video/*|max:10240',
             ], [
-                'upload.required' => 'Поле загрузки видео обязательно для заполнения.',
-                'upload.file' => 'Загруженный файл должен быть файлом.',
-                'upload.mimetypes' => 'Загруженный файл должен быть видео файлом.',
-                'upload.max' => 'Максимальный размер файла должен быть 10MB.',
+                'video.required' => 'Поле загрузки видео обязательно для заполнения.',
+                'video.file' => 'Загруженный файл должен быть файлом.',
+                'video.mimetypes' => 'Загруженный файл должен быть видео файлом.',
+                'video.max' => 'Максимальный размер файла должен быть 10MB.',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $file = $request->file('upload');
+            $file = $request->file('video');
             $fileId = Str::uuid();
+            $title = $request->get('title');
 
-            $ffmpeg = FFMpeg::create();
             $ffprobe = FFProbe::create();
-
-            $video = $ffmpeg->open($file);
             $videoInfo = $ffprobe->format($file);
-            $videoHeight = $video->getStreams()->first()->getDimensions()->getHeight();
             $videoDuration = $videoInfo->get('duration');
-
             if ($videoDuration > 15) {
-                return response()->json(['errors' => ['upload' => 'Видео слишком длинное. Максимальная длительность: 15 секунд.']], 422);
+                return response()->json(['errors' => ['video' => 'Видео слишком длинное. Максимальная длительность: 15 секунд.']], 422);
             }
 
-            if ($videoHeight > 1080) {
-                $video
-                    ->filters()
-                    ->resize(new Dimension(1920, 1080))
-                    ->synchronize();
-            }
-            $video
-                ->save(new X264(), "upload/1080p/$fileId.mp4");
-            $video
-                ->filters()
-                ->resize(new Dimension(854, 480))
-                ->synchronize();
-            $video
-                ->frame(TimeCode::fromSeconds($videoDuration / 2))
-                ->save("upload/preview/$fileId.jpg");
-            $video
-                ->save(new X264(), "upload/480p/$fileId.mp4");
+            $filePath = $file->store('public');
+            VideoUploadJob::dispatch($filePath, $title);
 
-            Video::create([
-                'id' => $fileId,
-                'title' => $request->get('title'),
-                'duration' => $videoDuration,
-                'size' => $videoInfo->get('size'),
-            ]);
-
-            return response()->json(['message' => 'Видео успешно загружено'], 200);
+            $videos = Video::orderBy('created_at', 'ASC')->paginate(8)->onEachSide(1);
+            $newVideos = view('main.video', compact('videos'))->render();
+            return response()->json(['message' => 'Видео успешно загружено', 'videos' => $newVideos], 200);
         }
     }
 
@@ -100,7 +77,7 @@ class IndexController extends Controller
      * Удаление видео файлов
      *
      * @param  Video  $video
-     * @return \Illuminate\Http\RedirectResponse
+     * @return void
      */
     public function fileRemove(Video $video)
     {
@@ -110,7 +87,9 @@ class IndexController extends Controller
 
         $video->delete();
 
-        return redirect()->route('main.index');
+        $videos = Video::orderBy('created_at', 'ASC')->paginate(8)->onEachSide(1);
+        $newVideos = view('main.video', compact('videos'))->render();
+        return response()->json(['message' => 'Видео успешно удалено', 'videos' => $newVideos], 200);
     }
 
 }

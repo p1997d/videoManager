@@ -19,5 +19,5 @@ use App\Http\Controllers\Main\IndexController;
 Route::group(['namespace' => Main::class], function () {
     Route::get('/', [IndexController::class, 'index'])->name('main.index');
     Route::post('/fileUpload', [IndexController::class, 'fileUpload'])->name('main.file.upload');
-    Route::get('/{video}/fileRemove', [IndexController::class, 'fileRemove'])->name('main.file.remove');
+    Route::post('/{video}/fileRemove', [IndexController::class, 'fileRemove'])->name('main.file.remove');
 });
