@@ -35,8 +35,13 @@
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
     </script>
 
+    <!-- Choice Theme -->
     <script src="{{ asset('js/theme.js') }}"></script>
     <link href="{{ asset('css/theme.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+
+    <script src="{{ asset('js/fileHandlers.js') }}"></script>
+
     <title>@yield('title')</title>
 </head>
 
@@ -46,5 +51,4 @@
         @yield('content')
     </main>
 </body>
-<script src="{{ asset('js/fileUpload.js') }}"></script>
 </html>

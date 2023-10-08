@@ -1,12 +1,12 @@
 $(document).ready(function () {
-    startAjaxForm();
+    ajaxFormHandler();
 });
 
 $(document).on('changePage', function () {
-    startAjaxForm();
+    ajaxFormHandler();
 });
 
-function startAjaxForm() {
+function ajaxFormHandler() {
     $('.fileUploadForm').ajaxForm({
         dataType: 'json',
         data: { 'id': generateID() },
@@ -32,11 +32,22 @@ function startAjaxForm() {
             }
         },
         beforeSend: function () {
-            $('.emptyToast').clone().appendTo("#forToast").removeClass('emptyToast').attr('id', $(this)[0].extraData.id).toast('show').find('.toastTitle').text($('#textInput').val());
+            $('.emptyToast')
+                .clone()
+                .appendTo("#forToast")
+                .removeClass('emptyToast')
+                .attr('id', $(this)[0].extraData.id)
+                .toast('show')
+                .find('.toastTitle')
+                .text($('#textInput').val())
+                .end()
+                .find('.toastAction')
+                .text('Загрузка');
+
             $('#addModal').modal('hide');
             var percentage = '0';
             $('#addModal').resetForm();
-            startAjaxForm()
+            ajaxFormHandler();
         },
         uploadProgress: function (event, position, total, percentComplete) {
             var percentage = percentComplete;
@@ -54,32 +65,51 @@ function startAjaxForm() {
             }
             $('#validationMessage').text('');
 
-            removeToastClickHandler($(this));
+            removeToastClickHandler($(this)[0].extraData.id);
         },
         success: function (xhr) {
             $('#videoContainer').html(xhr.videos).trigger('changePage');
             $('#' + $(this)[0].extraData.id).find('.progress').replaceWith(xhr.message);
 
-            removeToastClickHandler($(this));
+            removeToastClickHandler($(this)[0].extraData.id);
         }
     });
     $('.fileRemoveForm').ajaxForm({
+        beforeSend: function () {
+            ajaxFormHandler();
+        },
         success: function (xhr) {
+            $('.emptyToast')
+                .clone()
+                .appendTo("#forToast")
+                .removeClass('emptyToast')
+                .attr('id', xhr.id)
+                .toast('show')
+                .find('.toastTitle')
+                .text(xhr.title)
+                .end()
+                .find('.toastAction')
+                .text('Удаление')
+                .end()
+                .find('.progress')
+                .replaceWith(xhr.message);
+
             $('#videoContainer').html(xhr.videos).trigger('changePage');
+            removeToastClickHandler(xhr.id)
         }
     });
 }
 
 function removeToastClickHandler(element) {
-    $('#' + element[0].extraData.id).find('.toast-close').replaceWith(
+    $('#' + element).find('.toast-close').replaceWith(
         '<button type="button" class="btn-close removeToast" aria-label="Close"></button> '
     );
     $(".removeToast").off('click').on("click", function () {
-        $(this).closest('.toast').hide('slow', function(){ $(this).closest('.toast').remove(); });
+        $(this).closest('.toast').hide('slow', function () { $(this).closest('.toast').remove(); });
 
     });
     setTimeout(() => {
-        $('#' + element[0].extraData.id).hide('slow', function () { $('#' + element[0].extraData.id).remove(); });
+        $('#' + element).hide('slow', function () { $('#' + element).remove(); });
     }, 10000)
 }
 

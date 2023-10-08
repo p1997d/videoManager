@@ -3,18 +3,13 @@
 namespace App\Http\Controllers\Main;
 
 use App\Http\Controllers\Controller;
-use FFMpeg\Coordinate\Dimension;
-use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
-use FFMpeg\Format\Video\X264;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use FFMpeg\Coordinate\TimeCode;
 use App\Models\Video;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use App\Jobs\VideoUploadJob;
-
 
 class IndexController extends Controller
 {
@@ -34,7 +29,7 @@ class IndexController extends Controller
      * Загрузка видео файлов
      *
      * @param  Request  $request
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
     public function fileUpload(Request $request)
     {
@@ -54,7 +49,6 @@ class IndexController extends Controller
             }
 
             $file = $request->file('video');
-            $fileId = Str::uuid();
             $title = $request->get('title');
 
             $ffprobe = FFProbe::create();
@@ -67,8 +61,12 @@ class IndexController extends Controller
             $filePath = $file->store('public');
             VideoUploadJob::dispatch($filePath, $title);
 
-            $videos = Video::orderBy('created_at', 'ASC')->paginate(8)->onEachSide(1);
+            $page = $request->input('page', 1);
+
+            $videos = Video::orderBy('created_at', 'ASC')->paginate(8, ['*'], 'page', $page)->onEachSide(1);
+            $videos->setPath('/');
             $newVideos = view('main.video', compact('videos'))->render();
+
             return response()->json(['message' => 'Видео успешно загружено', 'videos' => $newVideos], 200);
         }
     }
@@ -77,9 +75,9 @@ class IndexController extends Controller
      * Удаление видео файлов
      *
      * @param  Video  $video
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function fileRemove(Video $video)
+    public function fileRemove(Video $video, Request $request)
     {
         File::delete(public_path("upload/480p/$video->id.mp4"));
         File::delete(public_path("upload/1080p/$video->id.mp4"));
@@ -87,9 +85,17 @@ class IndexController extends Controller
 
         $video->delete();
 
-        $videos = Video::orderBy('created_at', 'ASC')->paginate(8)->onEachSide(1);
-        $newVideos = view('main.video', compact('videos'))->render();
-        return response()->json(['message' => 'Видео успешно удалено', 'videos' => $newVideos], 200);
-    }
+        $page = $request->input('page', 1);
 
+        $videos = Video::orderBy('created_at', 'ASC')->paginate(8, ['*'], 'page', $page)->onEachSide(1);
+        $videos->setPath('/');
+        $newVideos = view('main.video', compact('videos'))->render();
+
+        return response()->json([
+            'message' => 'Видео успешно удалено',
+            'videos' => $newVideos,
+            'title' => $video->title,
+            'id' => $video->id,
+        ], 200);
+    }
 }
