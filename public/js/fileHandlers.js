@@ -12,18 +12,22 @@ function ajaxFormHandler() {
         data: { 'id': generateID() },
         beforeSubmit: function (arr, form, options) {
             const videoInput = $('#fileInput')[0];
+
             if (!videoInput.files || videoInput.files.length === 0) {
                 $('#validationMessage').text('Пожалуйста, выберите видеофайл.');
                 return false;
             }
+
             const videoFile = videoInput.files[0];
             const maxSizeMB = 10;
+
             if (!(/video\/\w+/g).test(videoFile.type)) {
                 $('#validationMessage').text(
                     `Выбранный файл не является видеофайлом. Пожалуйста, выберите видеофайл.`
                 );
                 return false;
             }
+
             if (videoFile.size > maxSizeMB * 1024 * 1024) {
                 $('#validationMessage').text(
                     `Размер файла слишком большой (максимальный размер: ${maxSizeMB} MB).`
@@ -58,11 +62,13 @@ function ajaxFormHandler() {
         error: function (xhr, status, error) {
             var response = xhr.responseJSON;
             $('#' + $(this)[0].extraData.id).find('.toastTitle').text('Ошибка');
+
             if (response && response.errors) {
                 $('#' + $(this)[0].extraData.id).find('.progress').replaceWith(response.errors['video']);
             } else {
                 $('#' + $(this)[0].extraData.id).find('.progress').replaceWith('Произошла ошибка: ' + error);
             }
+
             $('#validationMessage').text('');
 
             removeToastClickHandler($(this)[0].extraData.id);
