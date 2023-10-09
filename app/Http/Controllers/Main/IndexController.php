@@ -54,6 +54,7 @@ class IndexController extends Controller
             $ffprobe = FFProbe::create();
             $videoInfo = $ffprobe->format($file);
             $videoDuration = $videoInfo->get('duration');
+
             if ($videoDuration > 15) {
                 return response()->json(['errors' => ['video' => 'Видео слишком длинное. Максимальная длительность: 15 секунд.']], 422);
             }
