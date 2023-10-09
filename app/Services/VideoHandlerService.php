@@ -7,35 +7,45 @@ use Illuminate\Http\Request;
 use App\Models\Video;
 use Illuminate\Support\Facades\File;
 use App\Jobs\VideoUploadJob;
-use App\Http\Requests\VideoUploadRequest;
+use Illuminate\Support\Facades\Validator;
 
 class VideoHandlerService
 {
-    public function upload(VideoUploadRequest $request)
+    public function validator(Request $request)
     {
-        if ($request->hasFile('video')) {
-            $file = $request->file('video');
-            $title = $request->get('title');
+        return Validator::make($request->all(), [
+            'video' => 'required|file|mimetypes:video/*|max:10240',
+        ], [
+            'video.required' => 'Поле загрузки видео обязательно для заполнения.',
+            'video.file' => 'Загруженный файл должен быть файлом.',
+            'video.mimetypes' => 'Загруженный файл должен быть видео файлом.',
+            'video.max' => 'Максимальный размер файла должен быть 10MB.',
+        ]);
+    }
 
-            $ffprobe = FFProbe::create();
-            $videoInfo = $ffprobe->format($file);
-            $videoDuration = $videoInfo->get('duration');
+    public function upload(Request $request)
+    {
+        $file = $request->file('video');
+        $title = $request->get('title');
 
-            if ($videoDuration > 15) {
-                return response()->json(['errors' => ['video' => 'Видео слишком длинное. Максимальная длительность: 15 секунд.']], 422);
-            }
+        $ffprobe = FFProbe::create();
+        $videoInfo = $ffprobe->format($file);
+        $videoDuration = $videoInfo->get('duration');
 
-            $filePath = $file->store('public');
-            VideoUploadJob::dispatch($filePath, $title);
-
-            $page = $request->input('page', 1);
-
-            $videos = Video::orderBy('created_at', 'ASC')->paginate(8, ['*'], 'page', $page)->onEachSide(1);
-            $videos->setPath('/');
-            $newVideos = view('main.video', compact('videos'))->render();
-
-            return response()->json(['message' => 'Видео успешно загружено', 'videos' => $newVideos], 200);
+        if ($videoDuration > 15) {
+            return response()->json(['errors' => ['video' => 'Видео слишком длинное. Максимальная длительность: 15 секунд.']], 422);
         }
+
+        $filePath = $file->store('public');
+        VideoUploadJob::dispatch($filePath, $title);
+
+        $page = $request->input('page', 1);
+
+        $videos = Video::orderBy('created_at', 'ASC')->paginate(8, ['*'], 'page', $page)->onEachSide(1);
+        $videos->setPath('/');
+        $newVideos = view('main.video', compact('videos'))->render();
+
+        return response()->json(['message' => 'Видео успешно загружено', 'videos' => $newVideos], 200);
     }
 
     public function remove(Video $video, Request $request)

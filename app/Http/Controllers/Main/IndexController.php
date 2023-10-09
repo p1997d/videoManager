@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Video;
 use App\Services\VideoHandlerService;
-use App\Http\Requests\VideoUploadRequest;
 
 class IndexController extends Controller
 {
@@ -32,12 +31,20 @@ class IndexController extends Controller
     /**
      * Загрузка видео файлов
      *
-     * @param  VideoUploadRequest  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request
+     * @return \Illuminate\Http\JsonResponse|null
      */
-    public function fileUpload(VideoUploadRequest $request)
+    public function fileUpload(Request $request)
     {
-        return $this->videoHandlerService->upload($request);
+        if ($request->hasFile('video')) {
+            $validator = $this->videoHandlerService->validator($request);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            return $this->videoHandlerService->upload($request);
+        }
     }
 
     /**
