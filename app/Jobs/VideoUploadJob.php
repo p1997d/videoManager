@@ -53,6 +53,7 @@ class VideoUploadJob implements ShouldQueue
                 ->resize(new Dimension(1920, 1080))
                 ->synchronize();
         }
+
         $video
             ->save(new X264(), "upload/1080p/$fileId.mp4");
         $video
