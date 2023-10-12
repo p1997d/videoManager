@@ -31,3 +31,18 @@ WORKDIR /var/www
 
 # Remove the default nginx index page 
 RUN rm -rf /var/www/html
+
+# Copy existing application directory permissions 
+COPY --chown-www-data:www-data . /var/www
+
+# Change current user to www 
+USER www-data
+
+# Run composer install
+RUN composer install
+
+# Expose the port Laravel will serve on 
+EXPOSE 8000
+
+# Start Laravel's server
+CMD php artisan serve --host=0.0.0.0 --port=8000
