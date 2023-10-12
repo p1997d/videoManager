@@ -1,29 +1,33 @@
 # Use the official PHP image as the base image
-FROM php:8.1-apache
+FROM php:8.1-cli
 
-# Copy the application files into the container
-COPY . /var/www/html
-
-# Set the working directory in the container
-WORKDIR /var/www/html
-
-# Install necessary PHP extensions
+# Install system dependencies 
 RUN apt-get update && apt-get install -y \
-    libicu-dev \
-    libzip-dev \
-    && docker-php-ext-install \
-    intl \
-    zip \
-    && a2enmod rewrite
+	build-essential\
+	libpng-dev\
+	libjpeg62-turbo-dev\
+	libfreetype6-dev
+	locales \
+	libzip-dev
+	libonig-dev\
+	zip\
+	jpegoptim optipng pngquant gifsicle \
+	vim \
+	unzip \
+	curl \
+	git
+	
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install composer
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+
+# Install composer 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Laravel dependencies
-RUN composer install --no-dev
+# Set working directory 
+WORKDIR /var/www
 
-# Expose port 80
-EXPOSE 80
-
-# Define the entry point for the container
-CMD ["apache2-foreground"]
+# Remove the default nginx index page 
+RUN rm -rf /var/www/html
