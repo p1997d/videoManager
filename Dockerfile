@@ -39,7 +39,8 @@ COPY --chown=www-data:www-data . /var/www
 USER www-data
 
 # Run composer install
-RUN composer install
+RUN composer install \ 
+	&& php artisan migrate
 
 # Expose the port Laravel will serve on
 EXPOSE 8000
