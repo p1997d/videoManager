@@ -31,8 +31,10 @@ COPY .env.example .env
 RUN php artisan key:generate
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 80/tcp
 
 # Adjusting Apache configurations
 RUN a2enmod rewrite
 COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+
+CMD ["apache2-foreground"]
