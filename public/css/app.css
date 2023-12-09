@@ -1,36 +1,12 @@
 .videoCard {
-    width: 23%;
+    width: 20%;
+}
+.card-img, .card-img-top {
+	height: -webkit-fill-available;
 }
 
 @media (max-width: 992px) {
     .videoCard {
-        width: 48%;
-    }
-
-    .videos {
-        max-width: 100%;
-    }
-
-    .increasing-on-resize {
-        font-size: calc(0.75rem + 1.5vw) !important;
-    }
-
-    .form-control-rs {
-        min-height: calc(1.5em + 1rem + calc(var(--bs-border-width) * 2));
-        padding: 0.5rem 1rem;
-        font-size: 1.25rem;
-        border-radius: var(--bs-border-radius-lg);
-    }
-
-    .modal-dialog {
-        max-width: none;
-        margin: var(--bs-modal-margin);
-    }
-
-    .pagination-rs {
-        --bs-pagination-padding-x: 1.5rem;
-        --bs-pagination-padding-y: 0.75rem;
-        --bs-pagination-font-size: 1.25rem;
-        --bs-pagination-border-radius: var(--bs-border-radius-lg);
+        width: 45%;
     }
 }
