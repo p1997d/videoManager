@@ -10,7 +10,6 @@ class Video extends Model
     use HasFactory;
 
     protected $table = 'video';
-    protected $quarde = false;
     protected $guarded = [];
     protected $keyType = 'string';
     public $incrementing = false;
